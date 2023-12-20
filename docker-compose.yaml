@@ -1,17 +1,19 @@
 version: "3.7"
 services:
-  traefik:
+  api-gateway:
     image: traefik:v2.5
     command:
-      - "--log.level=DEBUG"
       - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.swarmMode=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
+      - "--providers.docker"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.network=traefik-public"
+      - "--entryPoints.web.address=:80"
     ports:
       - "80:80"
       - "8080:8080"
+      - "443:443"
     networks:
       - traefik-public
     deploy:
@@ -25,6 +27,8 @@ services:
     image: jung2k/hello-world:latest
     ports:
       - 9000
+    environment:
+      NODE_HOSTNAME: '{{.Node.Hostname}}'
     deploy:
       replicas: 2
       placement:
@@ -36,8 +40,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`intern.nexlab.tech`)"
-      - "traefik.http.services.api.loadbalancer.server.port=9000"
       - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=9000"
+    depends_on:
+      - api-gateway
 networks:
   traefik-public:
     external: true
