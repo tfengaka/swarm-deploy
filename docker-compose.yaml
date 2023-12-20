@@ -3,9 +3,12 @@ services:
   traefik:
     image: traefik:v2.5
     command:
+      - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--providers.swarmMode=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
       - "8080:8080"
@@ -32,8 +35,9 @@ services:
       - traefik-public
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.express-api.rule=Host(`intern.nexlab.tech`)"
-      - "traefik.http.services.express-api.loadbalancer.server.port=9000"
+      - "traefik.http.routers.api.rule=Host(`intern.nexlab.tech`)"
+      - "traefik.http.services.api.loadbalancer.server.port=9000"
+      - "traefik.http.routers.api.entrypoints=web"
 networks:
   traefik-public:
     external: true
