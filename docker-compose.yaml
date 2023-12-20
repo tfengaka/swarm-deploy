@@ -1,0 +1,35 @@
+version: "3.7"
+services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    networks:
+      - traefik-public
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  api:
+    image: jung2k/hello-world:latest
+    ports:
+      - 9000
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - "node.role == worker"
+          - "node.hostname != api-gateway"
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.express-api.rule=Host(`intern.nexlab.tech`)"
+      - "traefik.http.services.express-api.loadbalancer.server.port=9000"
+networks:
+  traefik-public:
+    external: true
