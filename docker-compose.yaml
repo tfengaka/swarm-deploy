@@ -1,19 +1,18 @@
 version: "3.7"
 services:
   api-gateway:
-    image: traefik:v2.5
+    image: traefik:latest
     command:
-      - "--api.insecure=true"
-      - "--providers.docker"
-      - "--providers.docker.swarmMode=true"
-      - "--providers.docker.exposedByDefault=false"
-      - "--providers.docker.network=traefik-public"
-      - "--entrypoints.web.address=:80"
+      - --api.insecure=true
+      - --providers.docker
+      - --providers.docker.swarmMode=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=traefik-public
+      - --entrypoints.api.address=:80
     ports:
       - "80:80"
       - "8080:8080"
       - "443:443"
-      - "9000:9000"
     networks:
       - traefik-public
     deploy:
@@ -22,7 +21,21 @@ services:
           - "node.hostname == api-gateway"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
+  postgres:
+    image: postgres:15
+    deploy:
+      labels:
+        - "traefik.enable=false"
+      placement:
+        constraints:
+          - "node.role==worker"
+          - "node.hostname != api-gateway"
+    environment:
+      POSTGRES_DB: your_database_name
+      POSTGRES_USER: your_database_user
+      POSTGRES_PASSWORD: your_database_password
+    networks:
+      - traefik-public
   api:
     image: jung2k/hello-world:latest
     ports:
@@ -37,13 +50,14 @@ services:
           - "node.hostname != api-gateway"
       labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      # - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=api"
       - "traefik.http.services.api.loadbalancer.server.port=9000"
     networks:
       - traefik-public
     depends_on:
       - api-gateway
+      - postgres
 networks:
   traefik-public:
     external: true
