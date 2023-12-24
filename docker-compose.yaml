@@ -8,6 +8,7 @@ services:
       - --providers.docker=true
       - --providers.docker.swarmMode=true
       - --providers.docker.exposedbydefault=false
+      - --entryPoints.web.address=:80
       - --accessLog=true
       - --log.level=DEBUG
     ports:
@@ -50,10 +51,11 @@ services:
         constraints:
           - "node.role == worker"
       labels:
+        - "traefik.port=80"
         - "traefik.enable=true"
-        - "traefik.docker.network=traefik-public"
-        - "traefik.docker.lbswarm=false"
+        - "traefik.http.routers.hello.entrypoints=web"
         - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
+        - "traefik.http.routers.hello.service=hello-service"
         - "traefik.http.services.hello-service.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: '{{.Node.Hostname}}'
