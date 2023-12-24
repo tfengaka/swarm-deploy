@@ -9,6 +9,7 @@ services:
       - --providers.docker.swarmMode=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.http.address=:80
+      - --watch
       - --accessLog=true
       - --log.level=DEBUG
     ports:
@@ -42,7 +43,7 @@ services:
   api:
     image: jung2k/hello-world:latest
     ports:
-      - 3000
+      - 80:3000
     networks:
       - traefik-public
     environment:
@@ -55,10 +56,10 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik-public"
-        - "traefik.http.routers.hello_http.rule=Host(`intern.nexlab.tech`)"
-        - "traefik.http.routers.hello_http.entrypoints=http"
-        - "traefik.http.routers.hello_http.service=hello"
-        - "traefik.http.services.hello.loadbalancer.server.port=3000"
+        - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
+        - "traefik.http.routers.hello.entrypoints=http"
+        - "traefik.http.routers.hello.service=hello"
+        - "traefik.http.services.hello.loadbalancer.server.port=80"
         - "traefik.http.services.hello.loadbalancer.passhostheader=true"
 networks:
   traefik-public:
