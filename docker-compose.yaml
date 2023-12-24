@@ -18,6 +18,7 @@ services:
     networks:
       - traefik-public
     deploy:
+      mode: global
       placement:
         constraints:
           - "node.hostname == api-gateway"
@@ -25,15 +26,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   postgres:
     image: postgres:15
+    labels:
+      - "traefik.enable=false"
     ports:
       - 5432:5432
     networks:
       - traefik-public
     deploy:
-      mode: global
-      labels:
-        - "traefik.enable=false"
-      placement:
+      placement:  
         constraints:
           - "node.role==worker"
     environment:
@@ -42,6 +42,8 @@ services:
       POSTGRES_PASSWORD: postgres
   hello:
     image: jung2k/hello-world:latest
+    labels:
+      - "traefik.enable=true"
     ports:
       - 3000:3000
     networks:
@@ -54,9 +56,8 @@ services:
         constraints:
           - "node.role == worker"
       labels:
-        - "traefik.enable=true"
         - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
         - "traefik.http.services.hello.loadbalancer.server.port=3000"
 networks:
   traefik-public:
-    external: true
+    external: true  
