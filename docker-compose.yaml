@@ -42,7 +42,7 @@ services:
   hello:
     image: jung2k/hello-world:latest
     ports:
-      - 3000
+      - 3000:3000
     networks:
       - traefik-public
     deploy:
@@ -51,7 +51,6 @@ services:
         constraints:
           - "node.role == worker"
       labels:
-        - "traefik.port=80"
         - "traefik.enable=true"
         - "traefik.http.routers.hello.entrypoints=web"
         - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
