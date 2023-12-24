@@ -3,10 +3,11 @@ services:
   api-gateway:
     image: traefik:latest
     command:
-      - --api.insecure=true
       - --providers.docker=true
       - --providers.docker.swarmMode=true
-      - --providers.docker.exposedByDefault=false
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --accessLog=true
     ports:
       - "80:80"
       - "8080:8080"
@@ -35,8 +36,6 @@ services:
       - traefik-public
   api:
     image: jung2k/hello-world:latest
-    ports:
-      - 3000:3000
     environment:
       NODE_HOSTNAME: '{{.Node.Hostname}}'
     deploy:
@@ -45,9 +44,9 @@ services:
         constraints:
           - "node.role == worker"
       labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`intern.nexlab.tech`)"
-      - "traefik.http.services.api.loadbalancer.server.port=3000"
+        - "traefik.enable=true"
+        - "traefik.http.routers.api.entrypoints=web"
+        - "traefik.http.services.api.loadbalancer.server.port=3000"
     networks:
       - traefik-public
     depends_on:
