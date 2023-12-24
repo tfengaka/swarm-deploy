@@ -1,6 +1,6 @@
 version: "3.7"
 services:
-  api-gateway:
+  traefik:
     image: traefik:latest
     command:
       - --api.insecure=true
@@ -8,6 +8,7 @@ services:
       - --providers.docker=true
       - --providers.docker.swarmMode=true
       - --providers.docker.exposedbydefault=false
+      - --entrypoints.http.address=:80
       - --accessLog=true
       - --log.level=DEBUG
     ports:
@@ -24,6 +25,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   postgres:
     image: postgres:15
+    ports:
+      - 5432:5432
+    networks:
+      - traefik-public
     deploy:
       labels:
         - "traefik.enable=false"
@@ -34,12 +39,12 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    networks:
-      - traefik-public
   api:
     image: jung2k/hello-world:latest
     ports:
-      - 3000:3000
+      - 3000
+    networks:
+      - traefik-public
     environment:
       NODE_HOSTNAME: '{{.Node.Hostname}}'
     deploy:
@@ -49,13 +54,12 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.api.rule=Host(`intern.nexlab.tech`) && PathPrefix(`/hello`)"
-        - "traefik.http.routers.api.entrypoints=traefik"
-        - "traefik.http.services.api.loadbalancer.server.port=3000"
-    networks:
-      - traefik-public
-    depends_on:
-      - api-gateway
+        - "traefik.docker.network=traefik-public"
+        - "traefik.http.routers.hello_http.rule=Host(`intern.nexlab.tech`)"
+        - "traefik.http.routers.hello_http.entrypoints=http"
+        - "traefik.http.routers.hello_http.service=hello"
+        - "traefik.http.services.hello.loadbalancer.server.port=3000"
+        - "traefik.http.services.hello.loadbalancer.passhostheader=true"
 networks:
   traefik-public:
     external: true
