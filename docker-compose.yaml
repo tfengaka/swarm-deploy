@@ -3,10 +3,10 @@ services:
   api-gateway:
     image: traefik:latest
     command:
+      - --api
       - --providers.docker=true
       - --providers.docker.swarmMode=true
       - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
       - --accessLog=true
     ports:
       - "80:80"
@@ -47,8 +47,8 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.express-api.rule=Host(`intern.nexlab.tech`)"
-        - "traefik.http.routers.api.entrypoints=web"
+        - "traefik.http.routers.express-api.rule=Host(`intern.nexlab.tech`) && PathPrefix(`/hello`)"
+        - "traefik.http.routers.api.entrypoints=api@internal"
         - "traefik.http.services.api.loadbalancer.server.port=3000"
     networks:
       - traefik-public
