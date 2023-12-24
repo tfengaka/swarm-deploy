@@ -36,6 +36,8 @@ services:
       - traefik-public
   api:
     image: jung2k/hello-world:latest
+    ports:
+      - 3000
     environment:
       NODE_HOSTNAME: '{{.Node.Hostname}}'
     deploy:
@@ -45,6 +47,7 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
+        - "traefik.http.routers.express-api.rule=Host(`intern.nexlab.tech`)"
         - "traefik.http.routers.api.entrypoints=web"
         - "traefik.http.services.api.loadbalancer.server.port=3000"
     networks:
