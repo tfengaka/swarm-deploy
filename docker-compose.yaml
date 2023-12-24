@@ -2,14 +2,19 @@ version: "3.7"
 services:
   traefik:
     image: traefik:latest
-    # command:
-    #   - --providers.docker=true
-    #   - --providers.docker.swarmMode=true
-    #   - --providers.docker.exposedbydefault=false
+    command:
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.swarmMode=true
+      - --providers.docker.endpoint=tcp://127.0.0.1:2377
+      - --providers.docker.exposedbydefault=false
+      - --accessLog=true
+      - --log.level=DEBUG
     ports:
       - "80:80"
-      - "443:443"
       - "8080:8080"
+      - "443:443"
     networks:
       - traefik-public
     deploy:
@@ -17,7 +22,6 @@ services:
         constraints:
           - "node.hostname == api-gateway"
     volumes:
-      - ./traefik.yaml:/etc/traefik/traefik.yaml
       - /var/run/docker.sock:/var/run/docker.sock
   postgres:
     image: postgres:15
@@ -26,6 +30,7 @@ services:
     networks:
       - traefik-public
     deploy:
+      mode: global
       labels:
         - "traefik.enable=false"
       placement:
@@ -35,9 +40,10 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-  hello:
+  :
     image: jung2k/hello-world:latest
-    container_name: hello
+    ports:
+      - 3000:3000
     networks:
       - traefik-public
     environment:
@@ -47,6 +53,10 @@ services:
       placement:
         constraints:
           - "node.role == worker"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
+        - "traefik.http.services.hello.loadbalancer.server.port=3000"
 networks:
   traefik-public:
     external: true
