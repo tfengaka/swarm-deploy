@@ -53,8 +53,8 @@ services:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik-public"
         - "traefik.docker.lbswarm=false"
-        - "traefik.http.routers.hello.rule=Host(`intern.nexlab.tech`) && PathPrefix(`/hello`)"
-        - "traefik.http.services.hello-service.loadbalancer.server.port=80"
+        - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
+        - "traefik.http.services.hello-service.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: '{{.Node.Hostname}}'
 networks:
