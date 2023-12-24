@@ -6,6 +6,8 @@ services:
       - --api.insecure=true
       - --api.dashboard=true
       - --providers.docker=true
+      - --providers.docker.network=traefik-public
+      - --providers.docker.watch=true
       - --providers.docker.swarmMode=true
       - --providers.docker.exposedbydefault=false
       - --entryPoints.web.address=:80
@@ -14,7 +16,7 @@ services:
     ports:
       - "80:80"
       - "8080:8080"
-      - "3000:3000"
+      - "443:443"
     networks:
       - traefik-public
     deploy:
