@@ -63,6 +63,8 @@ services:
         - "traefik.http.services.hello.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: "{{.Node.Hostname}}"
+volumes:
+  letsencrypt:
 networks:
   default:
     external: true
