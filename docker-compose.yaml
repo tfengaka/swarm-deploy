@@ -55,8 +55,8 @@ services:
         - "traefik.http.routers.app.tls=true"
         - "traefik.http.routers.app.tls.certresolver=letsencrypt"
         - "traefik.http.routers.app.rule=Host(`intern.nexlab.tech`) && Path(`/app`)"
-        - "traefik.http.routers.app.service=app@docker"
-        - "traefik.http.services.app@docker.loadbalancer.server.port=3000"
+        - "traefik.http.routers.app.service=app-svc"
+        - "traefik.http.services.app-svc.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: "{{.Node.Hostname}}"
 volumes:
