@@ -6,6 +6,7 @@ services:
       - --api.insecure
       - --api.dashboard
       - --providers.docker
+      - --providers.docker.watch
       - --providers.docker.network=traefik-public
       - --providers.docker.exposedByDefault=false
       - --providers.docker.swarmMode=true
@@ -51,10 +52,10 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.app.entrypoints=http"
         - "traefik.http.routers.app.tls=true"
         - "traefik.http.routers.app.tls.certresolver=letsencrypt"
-        - "traefik.http.routers.app.rule=Host(`intern.nexlab.tech`) && Path(`/app`)"
+        - "traefik.http.routers.app.entrypoints=http"
+        - "traefik.http.routers.app.rule=PathPrefix(`/app`)"
         - "traefik.http.routers.app.service=app-svc"
         - "traefik.http.services.app-svc.loadbalancer.server.port=3000"
     environment:
