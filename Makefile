@@ -1,12 +1,12 @@
 #!make
 
-PROJECT=swarm
+PROJECT=demo
 
 network:
-	docker network create --driver=overlay --attachable traefik-public
+	sudo docker network create --driver=overlay --attachable traefik-public
 deploy:
-	docker stack deploy -c docker-compose.yaml ${PROJECT}
+	sudo docker stack deploy -c docker-compose.yaml ${PROJECT}
 down:
-	docker stack rm ${PROJECT}
+	sudo docker stack rm ${PROJECT}
 %:
 	@echo "Done"
