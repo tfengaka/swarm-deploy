@@ -3,7 +3,7 @@
 PROJECT=demo
 
 network:
-	sudo docker network create --driver=overlay --attachable traefik-public
+	sudo docker network create --driver overlay --subnet=10.0.10.0/24 traefik-public
 deploy:
 	sudo docker stack deploy -c docker-compose.yaml ${PROJECT}
 down:

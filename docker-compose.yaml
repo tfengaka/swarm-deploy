@@ -9,7 +9,7 @@ services:
       - --providers.docker.network=traefik-public
       - --providers.docker.exposedByDefault=false
       - --providers.docker.swarmMode=true
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.endpoint=tcp://172.18.0.1:2377
       - --entrypoints.http.address=:80
       - --entrypoints.https.address=:443
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
@@ -20,6 +20,7 @@ services:
       - "443:443"
       - "8080:8080"
     volumes:
+      - ${VOLUME_PATH}letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       placement:
@@ -39,10 +40,10 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-  hello:
+  app:
     image: jung2k/hello-world:latest
     ports:
-      - 3000
+      - 3000:3000
     deploy:
       replicas: 2
       placement:
@@ -50,11 +51,12 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.hello.rule=PathPrefix(`/app`)"
-        - "traefik.http.routers.hello.entrypoints=https"
-        - "traefik.http.routers.hello.service=app"
-        - traefik.http.routers.hello.tls.certresolver=letsencrypt
-        - "traefik.http.services.app.loadbalancer.server.port=3000"
+        - "traefik.http.routers.app.entrypoints=http"
+        - "traefik.http.routers.app.tls=true"
+        - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.app.rule=Host(`intern.nexlab.tech`) && Path(`/app`)"
+        - "traefik.http.routers.app.service=app@docker"
+        - "traefik.http.services.app@docker.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: "{{.Node.Hostname}}"
 volumes:
