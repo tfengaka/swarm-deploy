@@ -17,8 +17,8 @@ services:
       - --certificatesresolvers.letsencrypt.acme.email=nthoa2.dev@gmail.com
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
     ports:
-      - "80:80"
-      - "443:443"
+      - { target: 80, published: 80, mode: host, protocol: tcp }
+      - { target: 443, published: 443, mode: host, protocol: tcp }
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -49,8 +49,8 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
-        - "traefik.http.routers.hello.entrypoints=http"
+        - "traefik.http.routers.hello.rule=Host(`intern.nexlab.tech`)"
+        - "traefik.http.routers.hello.entrypoints=https"
         - "traefik.http.routers.hello.service=hello"
         - traefik.http.routers.hello.tls.certresolver=letsencrypt
         - "traefik.http.services.hello.loadbalancer.server.port=3000"
