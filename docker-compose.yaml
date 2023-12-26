@@ -3,7 +3,6 @@ services:
   traefik:
     image: traefik:latest
     command:
-      - --log.level=DEBUG
       - --api.insecure
       - --api.dashboard
       - --providers.docker
@@ -11,6 +10,8 @@ services:
       - --providers.docker.exposedByDefault=false
       - --providers.docker.swarmMode=true
       - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
       - --certificatesresolvers.letsencrypt.acme.email=nthoa2.dev@gmail.com
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
@@ -26,11 +27,11 @@ services:
           - "node.hostname == api-gateway"
   postgres:
     image: postgres:15
+    labels:
+      - "traefik.enable=false"
     ports:
       - 5432:5432
     deploy:
-      labels:
-        - "traefik.enable=false"
       placement:
         constraints:
           - "node.role==worker"
@@ -40,6 +41,8 @@ services:
       POSTGRES_PASSWORD: postgres
   hello:
     image: jung2k/hello-world:latest
+    ports:
+      - 3000
     deploy:
       replicas: 2
       placement:
@@ -47,6 +50,11 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
+        - "traefik.http.routers.hello.rule=PathPrefix(`/app`)"
+        - "traefik.http.routers.hello.entrypoints=https"
+        - "traefik.http.routers.hello.service=app"
+        - traefik.http.routers.hello.tls.certresolver=letsencrypt
+        - "traefik.http.services.app.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: "{{.Node.Hostname}}"
 volumes:
