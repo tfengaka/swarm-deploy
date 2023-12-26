@@ -11,15 +11,12 @@ services:
       - --providers.docker.exposedByDefault=false
       - --providers.docker.swarmMode=true
       - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --entrypoints.http.address=:80
-      - --entrypoints.https.address=:443
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
       - --certificatesresolvers.letsencrypt.acme.email=nthoa2.dev@gmail.com
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
     ports:
       - "80:80"
       - "443:443"
-      - "3000:3000"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -29,11 +26,11 @@ services:
           - "node.hostname == api-gateway"
   postgres:
     image: postgres:15
-    labels:
-      - "traefik.enable=false"
     ports:
       - 5432:5432
     deploy:
+      labels:
+        - "traefik.enable=false"
       placement:
         constraints:
           - "node.role==worker"
@@ -50,11 +47,6 @@ services:
           - "node.role == worker"
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.hello.rule=PathPrefix(`/hello`)"
-        - "traefik.http.routers.hello.entrypoints=https"
-        - "traefik.http.routers.hello.service=api@internal"
-        - traefik.http.routers.hello.tls.certresolver=letsencrypt
-        - "traefik.http.services.api@internal.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: "{{.Node.Hostname}}"
 volumes:
