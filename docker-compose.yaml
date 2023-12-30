@@ -7,44 +7,26 @@ services:
       - --api.dashboard
       - --providers.docker
       - --providers.docker.watch
-      - --providers.docker.network=traefik-public
       - --providers.docker.exposedByDefault=false
       - --providers.docker.swarmMode=true
       - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --entrypoints.http.address=:80
       - --entrypoints.https.address=:443
-      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
-      - --certificatesresolvers.letsencrypt.acme.email=nthoa2.dev@gmail.com
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
-      - ${VOLUME_PATH}letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       placement:
         constraints:
+          - "node.role == manager"
           - "node.hostname == api-gateway"
-  postgres:
-    image: postgres:15
-    labels:
-      - "traefik.enable=false"
-    ports:
-      - 5432:5432
-    deploy:
-      placement:
-        constraints:
-          - "node.role==worker"
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
   app:
     image: jung2k/hello-world:latest
     ports:
-      - 3000:3000
+      - 3000
     deploy:
       replicas: 2
       placement:
@@ -60,9 +42,3 @@ services:
         - "traefik.http.services.app-svc.loadbalancer.server.port=3000"
     environment:
       NODE_HOSTNAME: "{{.Node.Hostname}}"
-volumes:
-  letsencrypt:
-networks:
-  default:
-    external: true
-    name: traefik-public
